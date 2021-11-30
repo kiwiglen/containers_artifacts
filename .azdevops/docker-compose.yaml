@@ -1,31 +1,142 @@
-version: '3'
+version: "3.9"
+
+networks:
+    tripinsights:
+        driver: bridge
+        name: tripinsights
+
 services:
-  poi:
-    build:
-      context: ../src/poi
-      dockerfile: ../../dockerfiles/Dockerfile_3
-    image: tripinsights/poi:1.0
+    sqltestdb:
+        container_name: sqltestdb
+        image: mcr.microsoft.com/mssql/server:2017-latest
+        hostname: sqltestdb
+        environment:
+            - ACCEPT_EULA=Y
+            - MSSQL_SA_PASSWORD=localtestpw123@
+        ports:
+            - 1433:1433
+        restart: unless-stopped
+        networks:
+            - tripinsights
 
-  trips:
-    build:
-      context: ../src/trips
-      dockerfile: ../../dockerfiles/Dockerfile_4
-    image: tripinsights/trips:1.0
-  
-  user-java:
-    build:
-      context: ../src/user-java
-      dockerfile: ../../dockerfiles/Dockerfile_0
-    image: tripinsights/user-java:1.0
-  
-  userprofile:
-    build:
-      context: ../src/userprofile
-      dockerfile: ../../dockerfiles/Dockerfile_2
-    image: tripinsights/userprofile:1.0
+    dbcreate:
+        container_name: dbcreate
+        image: mcr.microsoft.com/mssql/server:2017-latest
+        environment:
+            - ACCEPT_EULA=Y
+        command: /opt/mssql-tools/bin/sqlcmd -S sqltestdb -U SA -P 'localtestpw123@' -Q "CREATE DATABASE mydrivingDB"
+        restart: on-failure
+        networks:
+            - tripinsights
+        depends_on:
+            - sqltestdb
 
-  tripviewer:
-    build:
-      context: ../src/tripviewer
-      dockerfile: ../../dockerfiles/Dockerfile_1
-    image: tripinsights/tripviewer:1.0
+    dataload:
+        container_name: dataload
+        image: vyta/data-load:v1
+        environment:
+            - SQLFQDN=sqltestdb
+            - SQLUSER=sa
+            - SQLPASS=localtestpw123@
+            - SQLDB=mydrivingDB
+        restart: on-failure
+        networks:
+            - tripinsights
+        depends_on:
+            dbcreate:
+                condition: service_completed_successfully
+
+    poi:
+        build:
+            context: ../src/poi
+            dockerfile: ../../dockerfiles/Dockerfile_3
+        image: tripinsights/poi:1.0
+        container_name: poi
+        environment:
+            - SQL_SERVER=sqltestdb
+            - SQL_USER=sa
+            - SQL_PASSWORD=localtestpw123@
+            - ASPNETCORE_ENVIRONMENT=Local
+        ports:
+            - 8080:80
+        restart: unless-stopped
+        networks:
+              - tripinsights
+        depends_on:
+            dataload:
+                condition: service_completed_successfully
+
+    trips:
+        build:
+            context: ../src/trips
+            dockerfile: ../../dockerfiles/Dockerfile_4
+        image: tripinsights/trips:1.0
+        container_name: trips
+        environment:
+            - SQL_SERVER=sqltestdb
+            - SQL_USER=sa
+            - SQL_PASSWORD=localtestpw123@
+            - DOCS_URI=http://temp
+        ports:
+            - 8081:80
+        restart: unless-stopped
+        networks:
+              - tripinsights
+        depends_on:
+            dataload:
+                condition: service_completed_successfully
+    
+    user-java:
+        build:
+            context: ../src/user-java
+            dockerfile: ../../dockerfiles/Dockerfile_0
+        image: tripinsights/user-java:1.0
+        container_name: user-java
+        environment:
+            - SQL_SERVER=sqltestdb
+            - SQL_USER=sa
+            - SQL_PASSWORD=localtestpw123@
+        ports:
+            - 8082:80
+        restart: unless-stopped
+        networks:
+              - tripinsights
+        depends_on:
+            dataload:
+                condition: service_completed_successfully
+    
+    userprofile:
+        build:
+            context: ../src/userprofile
+            dockerfile: ../../dockerfiles/Dockerfile_2
+        image: tripinsights/userprofile:1.0
+        container_name: userprofile
+        environment:
+            - SQL_SERVER=sqltestdb
+            - SQL_USER=sa
+            - SQL_PASSWORD=localtestpw123@
+        ports:
+            - 8083:80
+        restart: unless-stopped
+        networks:
+              - tripinsights
+        depends_on:
+            dataload:
+                condition: service_completed_successfully
+
+    tripviewer:
+        build:
+            context: ../src/tripviewer
+            dockerfile: ../../dockerfiles/Dockerfile_1
+        image: tripinsights/tripviewer:1.0
+        container_name: tripviewer
+        environment:
+            - SQL_SERVER=sqltestdb
+            - SQL_USER=sa
+            - SQL_PASSWORD=localtestpw123@
+        restart: unless-stopped
+        networks:
+              - tripinsights
+        depends_on:
+            dataload:
+                condition: service_completed_successfully
