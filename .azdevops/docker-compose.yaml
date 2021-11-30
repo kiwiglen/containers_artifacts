@@ -47,10 +47,11 @@ services:
                 condition: service_completed_successfully
 
     poi:
-        build:
-            context: ../src/poi
-            dockerfile: ../../dockerfiles/Dockerfile_3
-        image: tripinsights/poi:1.0
+        # build:
+        #     context: ../src/poi
+        #     dockerfile: ../../dockerfiles/Dockerfile_3
+        # image: tripinsights/poi:1.0
+        image: registrybih8575.azurecr.io/poi:1.0
         container_name: poi
         environment:
             - SQL_SERVER=sqltestdb
@@ -67,10 +68,11 @@ services:
                 condition: service_completed_successfully
 
     trips:
-        build:
-            context: ../src/trips
-            dockerfile: ../../dockerfiles/Dockerfile_4
-        image: tripinsights/trips:1.0
+        # build:
+        #     context: ../src/trips
+        #     dockerfile: ../../dockerfiles/Dockerfile_4
+        # image: tripinsights/trips:1.0
+        image: registrybih8575.azurecr.io/trips:1.0
         container_name: trips
         environment:
             - SQL_SERVER=sqltestdb
@@ -87,10 +89,11 @@ services:
                 condition: service_completed_successfully
     
     user-java:
-        build:
-            context: ../src/user-java
-            dockerfile: ../../dockerfiles/Dockerfile_0
-        image: tripinsights/user-java:1.0
+        # build:
+        #     context: ../src/user-java
+        #     dockerfile: ../../dockerfiles/Dockerfile_0
+        # image: tripinsights/user-java:1.0
+        image: registrybih8575.azurecr.io/user-java:1.0
         container_name: user-java
         environment:
             - SQL_SERVER=sqltestdb
@@ -106,10 +109,11 @@ services:
                 condition: service_completed_successfully
     
     userprofile:
-        build:
-            context: ../src/userprofile
-            dockerfile: ../../dockerfiles/Dockerfile_2
-        image: tripinsights/userprofile:1.0
+        # build:
+        #     context: ../src/userprofile
+        #     dockerfile: ../../dockerfiles/Dockerfile_2
+        # image: tripinsights/userprofile:1.0
+        image: registrybih8575.azurecr.io/userprofile:1.0
         container_name: userprofile
         environment:
             - SQL_SERVER=sqltestdb
@@ -125,10 +129,11 @@ services:
                 condition: service_completed_successfully
 
     tripviewer:
-        build:
-            context: ../src/tripviewer
-            dockerfile: ../../dockerfiles/Dockerfile_1
-        image: tripinsights/tripviewer:1.0
+        # build:
+        #     context: ../src/tripviewer
+        #     dockerfile: ../../dockerfiles/Dockerfile_1
+        # image: tripinsights/tripviewer:1.0
+        image: registrybih8575.azurecr.io/tripviewer:1.0
         container_name: tripviewer
         environment:
             - SQL_SERVER=sqltestdb
