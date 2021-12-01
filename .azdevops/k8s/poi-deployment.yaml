@@ -1,0 +1,68 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: sql-connect-secrets
+type: Opaque
+data:
+  SQL_PASSWORD: "elgzaXg1R3gx"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sql-connect-cm
+data:
+  SQL_SERVER: sqlserverbih8575.database.windows.net
+  SQL_USER: sqladminbIh8575
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    io.kompose.service: poi
+  name: poi
+spec:
+  type: NodePort
+  ports:
+    - port: 8080
+      targetPort: 80
+  selector:
+    io.kompose.service: poi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: poi
+  name: poi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: poi
+  template:
+    metadata:
+      labels:
+        io.kompose.service: poi
+    spec:
+      containers:
+        - name: poi
+          image: registrybih8575.azurecr.io/poi:1.0
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+          envFrom:
+            - configMapRef: 
+                name: sql-connect-cm
+            - secretRef:
+                name: sql-connect-secrets
+          ports:
+            - containerPort: 80
+          resources:
+            limits:
+              memory: "1Gi"
+              cpu: "250m"
+            requests:
+              memory: "1Gi"
+              cpu: "250m"
+      restartPolicy: Always
